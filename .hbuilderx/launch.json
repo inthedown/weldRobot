@@ -1,0 +1,12 @@
+{
+    "version" : "1.0",
+    "configurations" : [
+        {
+            "customPlaygroundType" : "local",
+            "localRepoPath" : "/Users/liminglidehua/Downloads/weld_uniapp/weldRobot/unpackage/debug",
+            "packageName" : "",
+            "playground" : "custom",
+            "type" : "uni-app:app-android"
+        }
+    ]
+}
