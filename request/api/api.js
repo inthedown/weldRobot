@@ -62,6 +62,32 @@ const rest = {
 			method: 'post',
 			data
 		});
+	},
+	//开始焊接任务接口
+	startTask(original_point, weld_datas) {
+		return request('/channel_read?channel=&node=', {
+			method: 'post',
+			data: {
+				"channel": "weld_start",
+				"node": "weld",
+				"original_point": original_point,
+				"weld_datas": weld_datas
+			}
+		});
+	},
+	//返回初始位姿
+	resetRobot(param) {
+		return request('/channel_read?channel=&node=', {
+			method: 'post',
+			data: {
+				"channel": "RestChannel",
+				"node": "weld",
+				"data": {
+					"type": "return_original_point",
+					"original_point": param
+				}
+			}
+		});
 	}
 };
 

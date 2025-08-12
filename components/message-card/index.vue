@@ -1,27 +1,28 @@
 <template>
   <view :class="['message-card', typeClass]">
     <span class="icon" v-html="iconSvg"></span>
-    <span class="message-content">{{ message }}</span>
+    <text class="message-content">{{ message }}</text>
   </view>
 </template>
 
 <script>
 export default {
-  name: 'MessageCard',
+  name: "MessageCard",
   props: {
     type: {
       type: String,
-      default: 'info',
-      validator: val => ['info', 'success', 'warning', 'error', 'primary'].includes(val)
+      default: "info",
+      validator: (val) =>
+        ["info", "success", "warning", "error", "primary"].includes(val),
     },
     message: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
   computed: {
     typeClass() {
-      return `message-${this.type}`
+      return `message-${this.type}`;
     },
     iconSvg() {
       const icons = {
@@ -52,12 +53,12 @@ export default {
             <line x1="9" y1="9" x2="15" y2="15"></line>
           </svg>`,
         primary: `
-          <svg t="1754377074841" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="21168" width="200" height="200"><path d="M512 64C264.597333 64 64 264.597333 64 512s200.597333 448 448 448 448-200.597333 448-448S759.402667 64 512 64z m32 664a8.021333 8.021333 0 0 1-8 8h-48a8.021333 8.021333 0 0 1-8-8v-272c0-4.394667 3.605333-8 8-8h48c4.394667 0 8 3.605333 8 8v272zM512 384a48 48 0 1 1 0.021333-96.021333A48 48 0 0 1 512 384z" fill="#1296db" p-id="21169"></path></svg>`
-      }
-      return icons[this.type] || ''
-    }
-  }
-}
+          <svg t="1754377074841" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="21168" width="200" height="200"><path d="M512 64C264.597333 64 64 264.597333 64 512s200.597333 448 448 448 448-200.597333 448-448S759.402667 64 512 64z m32 664a8.021333 8.021333 0 0 1-8 8h-48a8.021333 8.021333 0 0 1-8-8v-272c0-4.394667 3.605333-8 8-8h48c4.394667 0 8 3.605333 8 8v272zM512 384a48 48 0 1 1 0.021333-96.021333A48 48 0 0 1 512 384z" fill="#1296db" p-id="21169"></path></svg>`,
+      };
+      return icons[this.type] || "";
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -67,15 +68,15 @@ export default {
   padding: 10rpx 0px;
   border-radius: 6px;
   font-weight: 600;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   user-select: none;
   font-size: 14px;
 }
 
 .icon {
-	width: 50rpx;
-	height: 50rpx;
-    margin-left: 18px;
+  width: 50rpx;
+  height: 50rpx;
+  margin-left: 18px;
   margin-right: 12px;
   flex-shrink: 0;
   display: flex;
@@ -99,12 +100,15 @@ export default {
 
 .message-error {
   background-color: #f56c6c;
-    color: #fff;
-
+  color: #fff;
 }
 
 .message-primary {
   background-color: #ecf8ff;
-    color: #409eff;
+  color: #409eff;
+}
+.message-content {
+  white-space: pre-wrap; /* 保留换行符 \n 并自动换行 */
+  word-break: break-word; /* 避免长单词不换行 */
 }
 </style>

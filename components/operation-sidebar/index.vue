@@ -2,11 +2,6 @@
 	<view class="operation-panel">
 		<view class="panel-item" v-for="(item, index) in actions" :key="index" @click="handleClick(item)">
 			<!-- 判断是否为模拟运行 -->
-			<!-- <uni-icons
-			        :type="item.icon"
-			        size="26"
-			        color="#fff"
-			      /> -->
 			<l-icon :name="item.icon" color="#fff" size="50rpx" />
 			<text class="panel-label">{{ item.label }}</text>
 		</view>
@@ -37,9 +32,8 @@
 			}
 		},
 		methods: {
-			handleClick(item) {
-
-
+			handleClick(item) {			
+				this.$emit('changeTask',item.label);	
 			}
 		}
 	}

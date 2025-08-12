@@ -114,6 +114,19 @@ const sql = {
         });
       });
     });
+  },
+
+  //查询初始位姿
+  getRobotPosition(device_ip) {
+    return this.selectSql("select * from weld_controller_info  where controller_ip=?", params = [device_ip]).then(res => {
+      if (res && res.length > 0) {
+        return res[0]; // 返回第一个结果
+      }
+      return null; // 如果没有结果，返回 null
+    }).catch(err => {
+      console.error('❌ 查询初始位姿失败', err);
+      throw err; // 抛出错误以便上层处理
+    });
   }
 };
 
