@@ -1,4 +1,5 @@
 <script>
+	import sql from '@/utils/sqlPlugin.js'
 	export default {
 		onLaunch: function() {
 			console.log('App Launch');
@@ -35,15 +36,17 @@
 
 					}
 
-
-
+				sql.initDatabase();
+		
 				}, function(e) {
 
 				});
 			}
+			
 		},
 		onShow: function() {
 			console.log('App Show')
+
 		},
 		onHide: function() {
 			console.log('App Hide')

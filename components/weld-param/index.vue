@@ -331,11 +331,7 @@ export default {
   color: #333;
 }
 
-.label-text {
-  font-weight: bold;
-  font-size: 28rpx;
-  width: 400rpx;
-}
+
 
 .disabled-input {
   background-color: #f5f5f5;

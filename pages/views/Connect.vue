@@ -76,15 +76,25 @@
 						deviceStatus.welderStatus = weld_status ? '正常' : '断开';
 
 						if (isSuccess) {
-							this.$emit('connect', this.form.ip);
-							uni.setStorageSync('device_ip', this.form.ip + ':54321');
-							uni.showToast({
-								title: '连接成功',
-								icon: 'success', // success / none / loading / error (部分平台不支持 error)
-								duration: 1500
-							});
-							EventBus.$emit('device-ip-updated', this.form.ip);
-							uni.$emit('updateDeviceStatus', true);
+							//存储到数据库
+							this.$sql.insertOrUpdateDevice(this.form.ip).then(res => {
+								this.$emit('connect', this.form.ip);
+								uni.setStorageSync('device_ip', this.form.ip + ':54321');
+								uni.showToast({
+									title: '连接成功',
+									icon: 'success', // success / none / loading / error (部分平台不支持 error)
+									duration: 1500
+								});
+								EventBus.$emit('device-ip-updated', this.form.ip);
+								uni.$emit('updateDeviceStatus', true);
+							}).catch(err => {
+								console.log('保存机械臂数据失败', err.msg);
+								uni.showToast({
+									title: '保存机械臂数据失败',
+									icon: 'error', // success / none / loading / error (部分平台不支持 error)
+									duration: 1500
+								});
+							})
 
 						} else {
 							uni.showModal({

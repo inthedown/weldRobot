@@ -5,17 +5,13 @@
         <view class="tip-text">
           <text>长按图标可拖动编辑</text>
         </view>
-		<view class="weld-set-box">
-		  <!-- <basic-drag v-model="weldList" width="800rpx" itemKey="id" :column="4" itemHeight="90rpx">
-            <template #item="{element}">
-              <view  class="drag-item" >
-				<image class="drag-icon" :src="element.base64" mode="aspectFill" />
-				<text >{{ element.name }}</text>
-			  </view>
-            </template>
-        </basic-drag> -->
-		<AppList class="app-list" :listData="weldList" @listChange="listChange"></AppList>
-		</view>
+        <view class="weld-set-box">
+          <AppList
+            class="app-list"
+            :listData="weldList"
+            @listChange="listChange"
+          ></AppList>
+        </view>
         <!-- <view ref="trash" class="trash-bin">
           <uni-icons type="trash-filled" color="#ff4d4f" size="40" />
           <text>拖到这里删除</text>
@@ -29,89 +25,37 @@
 import TipCard from "@/components/tip-card/index.vue";
 import BasicDrag from "@/components/basic-drag/index.vue";
 import AppList from "@/components/healer-dragList/AppList.vue";
-import props from '../../uni_modules/lime-icon/components/l-icon/props';
 export default {
   components: {
     TipCard,
     BasicDrag,
-	AppList
+    AppList,
   },
   props: {
     data: {
       type: Array,
-      default: []
-    }
+      default: [],
+    },
   },
   data() {
     return {
       dragIndex: null, // 被拖拽的元素索引
-      weldList: [
-        {
-          id: 1,
-          name: "1",
-          base64: "https://dummyimage.com/600x400/000/fff",
-          x: 0,
-          y: 0,
-        },
-        {
-          id: 2,
-          name: "2",
-          base64: "https://dummyimage.com/600x400/e0b8e0/0011ff",
-          x: 80,
-          y: 0,
-        },
-        {
-          id: 3,
-          name: "3",
-          base64: "https://dummyimage.com/600x400/4c54db/0011ff",
-          x: 160,
-          y: 0,
-        },
-        {
-          id: 4,
-          name: "4",
-          base64: "https://dummyimage.com/600x400/ed3d3d/0011ff",
-          x: 240,
-          y: 0,
-        },{
-          id: 5,
-          name: "1",
-          base64: "https://dummyimage.com/600x400/000/fff",
-          x: 0,
-          y: 0,
-        },
-        {
-          id: 6,
-          name: "2",
-          base64: "https://dummyimage.com/600x400/e0b8e0/0011ff",
-          x: 80,
-          y: 0,
-        },
-        {
-          id: 7,
-          name: "3",
-          base64: "https://dummyimage.com/600x400/4c54db/0011ff",
-          x: 160,
-          y: 0,
-        },
-        {
-          id: 8,
-          name: "4",
-          base64: "https://dummyimage.com/600x400/ed3d3d/0011ff",
-          x: 240,
-          y: 0,
-        }
-      ],
-	//   weldList: this.data || [],
-	};
+      weldList: this.data,
+    };
   },
   mounted() {},
+  watch: {
+    data(newVal) {
+      this.weldList = newVal;
+      console.log("Updated weldList:", this.weldList);
+    },
+  },
   methods: {
-	listChange(list){
-		console.log('listChange', list);
-		//返回给父组件
-		this.$emit('listChange',list);
-	}
+    listChange(list) {
+      console.log("listChange", list);
+      //返回给父组件
+      this.$emit("listChange", list);
+    },
   },
 };
 </script>
@@ -125,7 +69,7 @@ export default {
   margin-bottom: 20rpx;
 }
 .weld-set-box {
-  width: 900rpx;
+  width: 600rpx;
   height: fit-content;
 }
 .weld-set-item {
@@ -161,7 +105,7 @@ export default {
   font-size: 14px;
   color: #666;
 }
-.app-list{
-	height: 100%;
+.app-list {
+  height: 100%;
 }
 </style>

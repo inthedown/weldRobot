@@ -20,7 +20,7 @@
           @touchmove="AppLi_touchmove"
           @touchend="AppLi_touchend(index)"
         >
-          <image class="drag-icon" :src="appItem.base64" mode="aspectFill" />
+          <image class="drag-icon" :src="`data:image/jpeg;base64,${appItem.weld_image_base64}`" mode="aspectFill" />
           <text class="appName">{{ appItem.name }}</text>
           <uni-icons
             type="clear"
@@ -222,7 +222,8 @@ export default {
     AppLi_touchend(index) {
       if (!this.showDelete && !this.IsDeleteAfter && !this.IsCancelDelete) {
         // this.getInto(this.touchItem.appName);
-		this.imgSrc = this.touchItem.base64;
+        // :src="`data:image/jpeg;base64,${appItem.weld_image_base64}`" 
+		this.imgSrc = 'data:image/jpeg;base64,'+this.touchItem.weld_image_base64;
 		this.getInto();
 
       } else {

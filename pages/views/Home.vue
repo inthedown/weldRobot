@@ -102,6 +102,9 @@ export default {
       weld_param: {},
       isParamSet: false,
       weldList: [],
+      reconnectAttempts: 0, // 定义重连相关变量
+      maxReconnectAttempts: 10, // 定义重连相关变量  最大重连次数
+      reconnectTimer: null, // 定义重连相关变量
     };
   },
   computed: {
@@ -151,12 +154,12 @@ export default {
   created() {},
   watch: {
     currentStep(newVal) {
-		console.log('当前阶段：',newVal)
+      console.log("当前阶段：", newVal);
       if (newVal === 2) {
-        this.handleStartIdentify();
-      }else if (newVal === 4 ){
-		this.initWeldList();
-	  }
+        this.startIdentifyTask();
+      } else if (newVal === 4) {
+        this.initWeldList();
+      }
     },
   },
   beforeDestroy() {
@@ -184,7 +187,10 @@ export default {
       const wsPort = this.$config.wsProt;
       const wsUrl = "ws://" + IP + ":" + wsPort + "/ws?camera=Cam01";
       console.log("WebSocket URL:", wsUrl);
-
+      // 定义重连相关变量（放在 this 上，保证多次调用共享）
+      if (!this.reconnectAttempts) this.reconnectAttempts = 0;
+      if (!this.maxReconnectAttempts) this.maxReconnectAttempts = 10; // 最大重连次数
+      if (!this.reconnectTimer) this.reconnectTimer = null;
       // 建立连接
       this.socketTask = uni.connectSocket({
         url: wsUrl,
@@ -193,66 +199,109 @@ export default {
         },
         fail: (err) => {
           console.error("WebSocket 连接失败:", err);
+          scheduleReconnect();
         },
       });
+      const createSocket = () => {
+        if (this.socketTask == null) {
+          this.socketTask = uni.connectSocket({
+            url: wsUrl,
+            success: () => {
+              console.log("WebSocket 发起连接成功");
+            },
+            fail: (err) => {
+              console.error("WebSocket 连接失败:", err);
+              scheduleReconnect();
+            },
+          });
+        }
+        // 连接打开
+        this.socketTask.onOpen(() => {
+          console.log("WebSocket 连接已建立");
+          this.reconnectAttempts = 0; // 重连计数清零
+          if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+          }
+        });
 
-      // 连接打开
-      this.socketTask.onOpen(() => {
-        console.log("WebSocket 连接已建立");
-      });
+        // 接收消息
+        this.socketTask.onMessage((res) => {
+          try {
+            const arrayBuffer = res.data;
+            const uint8Array = new Uint8Array(arrayBuffer);
 
-      // 接收消息
-      this.socketTask.onMessage((res) => {
-        try {
-          const arrayBuffer = res.data;
-          const uint8Array = new Uint8Array(arrayBuffer);
+            // 尝试用 TextDecoder 解码
+            let text = "";
+            if (typeof TextDecoder !== "undefined") {
+              const decoder = new TextDecoder("utf-8");
+              text = decoder.decode(uint8Array);
+            } else {
+              // fallback 分块解码
+              let CHUNK_SIZE = 0x8000;
+              for (let i = 0; i < uint8Array.length; i += CHUNK_SIZE) {
+                text += String.fromCharCode.apply(
+                  null,
+                  uint8Array.subarray(i, i + CHUNK_SIZE)
+                );
+              }
+            }
+            const json = JSON.parse(text);
+            const data = json.data || {};
 
-          // 尝试用 TextDecoder 解码
-          let text = "";
-          if (typeof TextDecoder !== "undefined") {
-            const decoder = new TextDecoder("utf-8");
-            text = decoder.decode(uint8Array);
-          } else {
-            // fallback 分块解码
-            let CHUNK_SIZE = 0x8000;
-            for (let i = 0; i < uint8Array.length; i += CHUNK_SIZE) {
-              text += String.fromCharCode.apply(
-                null,
-                uint8Array.subarray(i, i + CHUNK_SIZE)
+            if (this.currentStep !== 2) {
+              //初始阶段 就展示相机画面
+              this.status = data.status;
+              this.cameraImage = data.camera_image;
+            } else if (this.startIdentify && this.currentStep === 2) {
+              //todo 有没有必要加flag
+              this.status = data.status;
+              this.handleWeldIdentifyResult(data);
+            } else if (this.currentStep === 4) {
+              this.weldList = this.updateWeldStatus(
+                this.weldList,
+                data.weld_id,
+                data.status
               );
             }
+          } catch (e) {
+            console.error("解析消息失败:", e);
           }
-          const json = JSON.parse(text);
-          const data = json.data || {};
+        });
 
-          if (this.currentStep !== 2) {
-            //初始阶段 就展示相机画面
-            this.status = data.status;
-            this.cameraImage = data.camera_image;
-          } else if (this.startIdentify && this.currentStep === 2) {
-            //todo 有没有必要加flag
-            this.handleWeldIdentifyResult(data);
-          } else if (this.currentStep === 4) {
-			this.weldList = this.updateWeldStatus(
-			  this.weldList,
-			  data.weld_id,
-			  data.status
-			);
+        // 连接错误
+        this.socketTask.onError((err) => {
+          console.error("WebSocket 错误:", err);
+          scheduleReconnect();
+        });
+
+        // 连接关闭
+        this.socketTask.onClose(() => {
+          console.log("WebSocket 连接关闭");
+          this.stopImageLoop();
+          scheduleReconnect();
+        });
+        const scheduleReconnect = () => {
+          if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            console.error("WebSocket 达到最大重连次数，停止重连");
+            return;
           }
-        } catch (e) {
-          console.error("解析消息失败:", e);
-        }
-      });
+          if (this.reconnectTimer) return; // 避免重复定时器
 
-      // 连接错误
-      this.socketTask.onError((err) => {
-        console.error("WebSocket 错误:", err);
-      });
-
-      // 连接关闭
-      this.socketTask.onClose(() => {
-        console.log("WebSocket 连接关闭");
-      });
+          const timeout = Math.min(1000 * 2 ** this.reconnectAttempts, 30000); // 指数退避，最大30秒
+          console.log(
+            `WebSocket ${
+              this.reconnectAttempts + 1
+            } 次重连，${timeout}ms 后尝试连接`
+          );
+          this.reconnectTimer = setTimeout(() => {
+            this.reconnectAttempts++;
+            this.reconnectTimer = null;
+            createSocket();
+          }, timeout);
+        };
+      };
+      createSocket();
     },
     closeWebSocket() {
       if (this.socketTask) {
@@ -269,14 +318,25 @@ export default {
       //选择焊缝类型
       this.currentStep = 1;
     },
-    handleStartIdentify() {
+    startIdentifyTask() {
+      console.log("startIdentifyTask");
       //开始识别
       // this.currentStep = 2;
       //1.获取当前机械臂位置
-      this.$rest
-        .getRobotPosition()
+      const deviceIp = uni.getStorageSync("device_ip").split(":")[0];
+      this.$sql
+        .getRobotPosition(deviceIp)
         .then((res) => {
-          const position = res.data;
+          console.log("res", res);
+          if (res == null) {
+            uni.showToast({
+              title: "获取当前机械臂位置失败",
+              icon: "error", // success / none / loading / error (部分平台不支持 error)
+              duration: 1500,
+            });
+            this.currentStep = 1; //返回识别前一步
+          }
+          const position = res.init_position;
           console.log("position", position);
           const param = this.concatIdentifyParam(position); //拼接参数
           this.$rest
@@ -303,7 +363,15 @@ export default {
             })
             .catch((err) => {});
         })
-        .catch((err) => {});
+        .catch((err) => {
+          console.log("获取机械臂位置失败", err);
+          uni.showToast({
+            title: "获取当前机械臂位置失败",
+            icon: "error", // success / none / loading / error (部分平台不支持 error)
+            duration: 1500,
+          });
+          this.currentStep = 1; //返回识别前一步
+        });
     },
     concatIdentifyParam(raw) {
       const param = {
@@ -351,6 +419,8 @@ export default {
       const result = weld_datas.map((item) => {
         const imageData = imageMap[item.weld_image] || {};
         return {
+          id: item.weld_id,
+          name: `焊接 ${item.weld_id}`,
           weld_id: item.weld_id,
           weld_length: item.weld_length,
           weld_positions: item.weld_position,
@@ -370,7 +440,7 @@ export default {
           // 状态为0，结束循环
           clearInterval(this.timer);
           this.timer = null;
-          // 关闭 WebSocket 连接，假设存在 this.ws
+          // todo 要不要关闭 WebSocket 连接
           this.closeWebSocket();
           this.currentStep = 3;
           return;
@@ -427,7 +497,7 @@ export default {
     resetLocalData() {
       //重置本地数据
       this.cameraImage = null;
-      this.currentStep = 0;
+      //   this.currentStep = 0;
       this.status = null;
       this.identityData = [];
       this.startIdentify = false;
@@ -458,32 +528,52 @@ export default {
         });
         return;
       }
-      const data = this.concatWeldingParam(simulateFlag);
-      this.$rest
-        .startWelding(data, this.weld_param)
+      const deviceIp = uni.getStorageSync("device_ip").split(":")[0];
+      this.$sql
+        .getRobotPosition(deviceIp)
         .then((res) => {
-          console.log("开始焊接结果", res);
-          if (res.weld_status) {
-			const titleStr=simulateFlag?"模拟焊接任务已开始":"焊接任务已开始";
+          if (res == null) {
             uni.showToast({
-              title:  titleStr,
-              icon: "success",
-            });
-            if (!simulateFlag) this.currentStep = 4; // 切换到焊接界面
-          } else {
-			const titleStr=simulateFlag?"模拟焊接任务启动失败":"焊接任务启动失败";
-            uni.showToast({
-              title: titleStr,
-              icon: "error",
+              title: "获取当前机械臂位置失败",
+              icon: "error", // success / none / loading / error (部分平台不支持 error)
+              duration: 1500,
             });
           }
+          const position = res.init_position;
+          const data = this.concatWeldingParam(simulateFlag);
+          this.$rest
+            .startTask(position, data)
+            .then((res) => {
+              console.log("开始焊接结果", res);
+              if (res.weld_status) {
+                const titleStr = simulateFlag
+                  ? "模拟焊接任务已开始"
+                  : "焊接任务已开始";
+                uni.showToast({
+                  title: titleStr,
+                  icon: "success",
+                });
+                if (!simulateFlag) this.currentStep = 4; // 切换到焊接界面
+              } else {
+                const titleStr = simulateFlag
+                  ? "模拟焊接任务启动失败"
+                  : "焊接任务启动失败";
+                uni.showToast({
+                  title: titleStr,
+                  icon: "error",
+                });
+              }
+            })
+            .catch((err) => {});
         })
         .catch((err) => {});
     },
     //构造请求数据
     concatWeldingParam(simulateFlag) {
       const result = this.identityData.map((item) => ({
-        ...item,
+        weld_id: item.weld_id,
+        weld_length: item.weld_length,
+        weld_positions: item.weld_positions,
         simulate: simulateFlag,
         welding_current: this.weld_param.electric,
         welding_correction_voltage: this.weld_param.voltage,
@@ -491,12 +581,18 @@ export default {
         welding_speed: this.weld_param.speed,
       }));
       return result;
-      F;
     },
     resetRobot() {
       //重置机械臂
       this.$sql.getRobotPosition().then((res) => {
-        const position = { rx: 0, ry: 0, rz: 0, x: 0, y: 0, z: 0 };
+        const position = {
+          rx: 0,
+          ry: 0,
+          rz: 0,
+          x: 0,
+          y: 0,
+          z: 0,
+        };
         if (res && res != null) {
           position = res;
         }
@@ -537,21 +633,24 @@ export default {
           if (status === 0) statStr = "done";
           else if (status === 1) statStr = "in_progress";
           else if (status === 2) statStr = "error";
-          return { ...weld, status: statStr };
+          return {
+            ...weld,
+            status: statStr,
+          };
         } else {
           // 其他保持原状态，不改动
           return weld;
         }
       });
     },
-	initWeldList() {
-	  // 初始化焊接列表
-	  this.weldList = this.identityData.map((item) => ({
-	    id: item.weld_id,
-	    name: `焊缝 ${item.weld_id}`,
-	    status: "waiting", // 初始状态为等待
-	  }));
-	},
+    initWeldList() {
+      // 初始化焊接列表
+      this.weldList = this.identityData.map((item) => ({
+        id: item.weld_id,
+        name: `焊缝 ${item.weld_id}`,
+        status: "waiting", // 初始状态为等待
+      }));
+    },
   },
 };
 </script>
