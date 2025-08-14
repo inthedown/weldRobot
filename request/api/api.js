@@ -65,17 +65,21 @@ const rest = {
 	},
 	//开始焊接任务接口
 	startTask(original_point, weld_datas) {
-		const originalPointWithTool = {
-			...original_point,
-			tool: "1"
-		  };
+		original_point.tool = 1;
+		console.log('original_point', original_point);
+		console.log('weld_datas', weld_datas);
+
 		return request('/channel_read?channel=&node=', {
 			method: 'post',
 			data: {
-				"channel": "weld_start",
+				"channel": "RestChannel",
 				"node": "weld",
-				"original_point": originalPointWithTool,
-				"weld_datas": weld_datas
+				"data": {
+					"type":"weld_start",
+					"original_point": original_point,
+					"weld_datas": weld_datas
+				}
+
 			}
 		});
 	},

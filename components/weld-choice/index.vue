@@ -48,6 +48,7 @@
 
 <style>
 	.radio-group-column {
+		width: 100%;
 		display: flex;
 		flex-direction: column;
 		gap: 20rpx;
@@ -56,7 +57,7 @@
 
 	.radio-item {
 		display: flex;
-		align-items: center;
+		/* align-items: center; */
 		margin-bottom: 12rpx;
 	}
 

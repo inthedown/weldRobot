@@ -10,6 +10,7 @@
             class="app-list"
             :listData="weldList"
             @listChange="listChange"
+			@showImage="handleShowImage"
           ></AppList>
         </view>
         <!-- <view ref="trash" class="trash-bin">
@@ -34,7 +35,7 @@ export default {
   props: {
     data: {
       type: Array,
-      default: [],
+      default:()=>[],
     },
   },
   data() {
@@ -56,14 +57,20 @@ export default {
       //返回给父组件
       this.$emit("listChange", list);
     },
+	handleShowImage(base64){
+		this.$emit('sendImage',base64);
+	}
   },
 };
 </script>
-<style>
+<style scoped>
 .page {
   padding: 20rpx;
 }
 
+.content{
+	width: 100%;
+}
 .tip-text {
   font-size: 26rpx;
   margin-bottom: 20rpx;

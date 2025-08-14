@@ -5,7 +5,6 @@ uni.addInterceptor('request', {
 	invoke(args) {
 		const defaultIp = uni.getStorageSync('device_ip') || '127.0.0.1:54321';
 		let baseURL = `http://${defaultIp}`;
-		console.log(baseURL);
 		// 检查是否传了 customIp
 		const match = args.url.match(/^__USE_CUSTOM_IP__::(.*?)::(.*)$/);
 		if (match) {
@@ -37,6 +36,7 @@ export default function request(url, options = {}) {
 	}
 
 	return new Promise((resolve, reject) => {
+		console.log('data',options.data);
 		uni.request({
 			url,
 			timeout: 3000,

@@ -28,27 +28,27 @@ const sql = {
 	// 打开数据库（内部自动判断）
 	openDatabase() {
 		return new Promise((resolve, reject) => {
-				if (plus.sqlite.isOpenDatabase({
+			if (plus.sqlite.isOpenDatabase({
 					name: this.dbName,
 					path: `_doc/${this.dbName}`
 				})) {
-					// 已经打开
-					console.log('✅ 数据库已经打开');
-					return resolve();
+				// 已经打开
+				console.log('✅ 数据库已经打开');
+				return resolve();
+			}
+			plus.sqlite.openDatabase({
+				name: this.dbName,
+				path: `_doc/${this.dbName}`,
+				success: () => {
+					console.log('✅ 数据库打开成功');
+					resolve();
+				},
+				fail: e => {
+					console.error('❌ 数据库打开失败', e);
+					reject(e);
 				}
-				plus.sqlite.openDatabase({
-					name: this.dbName,
-					path: `_doc/${this.dbName}`,
-					success: () => {
-						console.log('✅ 数据库打开成功');
-						resolve();
-					},
-					fail: e => {
-						console.error('❌ 数据库打开失败', e);
-						reject(e);
-					}
-				});
 			});
+		});
 	},
 
 	// 判断是否打开
@@ -204,10 +204,9 @@ const sql = {
 				    '${this.formatTime()}'
 				  )
 				`;
-				return this.executeSql(sql
-				).then(() => {
+				return this.executeSql(sql).then(() => {
 					console.log(`✅ 新增设备成功`);
-				}).catch(err=>{
+				}).catch(err => {
 					console.log(err.message)
 				});
 			} else {
@@ -226,7 +225,8 @@ const sql = {
 
 	//查询初始位姿
 	getRobotPosition(deviceIp) {
-		return this.selectSql(`select * from weld_controller_info  where controller_ip= '${deviceIp}'`).then(res => {
+		return this.selectSql(`select * from weld_controller_info  where controller_ip= '${deviceIp}'`).then(
+		res => {
 			if (res && res.length > 0) {
 				return res[0]; // 返回第一个结果
 			}
@@ -236,17 +236,64 @@ const sql = {
 			throw err; // 抛出错误以便上层处理
 		});
 	},
-  // 重置初始位姿
-  resetRobotPosition(deviceIp, position){
-    return this.executeSql(
-      `UPDATE weld_controller_info SET init_position = '${JSON.stringify(position)}' WHERE controller_ip = '${deviceIp}'`
-    ).then(() => {
-      console.log(`✅ 重置初始位姿成功`);
-    }).catch(err => {
-      console.error('❌ 重置初始位姿失败', err.message);
-      throw err; // 抛出错误以便上层处理
-    });
-  }
+	// 重置初始位姿
+	resetRobotPosition(deviceIp, position) {
+		return this.executeSql(
+			`UPDATE weld_controller_info SET init_position = '${JSON.stringify(position)}' WHERE controller_ip = '${deviceIp}'`
+		).then(() => {
+			console.log(`✅ 重置初始位姿成功`);
+		}).catch(err => {
+			console.error('❌ 重置初始位姿失败', err.message);
+			throw err; // 抛出错误以便上层处理
+		});
+	},
+	// 获取所有工艺包配置
+	getAllWeldParams() {
+		const sql = `SELECT * FROM weld_job_config ORDER BY create_time DESC`;
+		return this.selectSql(sql)
+			.then(results => {
+				console.log('✅ 查询工艺包成功', results);
+				return results;
+			})
+			.catch(err => {
+				console.error('❌ 查询工艺包失败', err.message);
+				throw err;
+			});
+	},
+
+	addWeldParam(formData) {
+		// 获取当前时间戳作为 create_time / update_time
+		const timestamp = this.formatTime();;
+
+		// 生成 uuid，可以用随机数或库生成
+		const uuId = uuid();
+
+		// 构造 SQL 插入语句
+		const sql = `
+	      INSERT INTO weld_job_config (
+	        uuid, name, amplitude, electric, voltage, speed, create_time, update_time
+	      ) VALUES (
+	        '${uuId}',
+	        '${formData.name}',
+	        '${formData.amplitude}',
+	        '${formData.electric}',
+	        '${formData.voltage }',
+	        '${formData.speed }',
+	        '${timestamp}',
+	        '${timestamp}'
+	      );
+	    `;
+
+		// 执行 SQL
+		return this.executeSql(sql)
+			.then(() => {
+				console.log('✅ 新增工艺包成功');
+			})
+			.catch(err => {
+				console.error('❌ 新增工艺包失败', err.message);
+				throw err;
+			});
+	}
 };
 
 export default sql;

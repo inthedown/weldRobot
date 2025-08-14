@@ -8,6 +8,9 @@ Vue.prototype.$sql = sql;
 Vue.prototype.$config = config  // 全局挂载
 import rest from '@/request/api/api.js'
 Vue.prototype.$rest = rest 
+import logger from '@/utils/log.js'; // 提前引入，立即重写 console.log
+
+Vue.prototype.$logger = logger;
 // #ifndef VUE3
 import Vue from 'vue'
 import './uni.promisify.adaptor'

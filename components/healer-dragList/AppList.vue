@@ -1,10 +1,5 @@
 <template>
-  <!-- 
-	 组件思路：
-		利用touch事件返回坐标值，赋值滑动视图，得到滑动视图跟随鼠标的效果，视觉上达到拖拽。
-		思路清奇，感谢1090927926@qq.com提供思路，码农之路需要这种乐于技术分享的人。共勉！
-		本人代码烂，代码中我会尽量给出注释，以便需要的人根据自己需求修改。
-	 -->
+ 
   <view class="">
     <!-- 可移动区域容器 -->
     <movable-area class="movarea" ref="areaBox" id="areaBox">
@@ -50,14 +45,14 @@
       </movable-view>
     </movable-area>
     <!-- 图片预览弹框 -->
-    <uni-popup
+   <!-- <uni-popup
       ref="imgPreview"
       type="center"
       background-color="rgba(0,0,0,0.8)"
 	    :mask-click="false"
     >
 	<view class="preview-container">
-      <!-- 标题栏 -->
+
       <view class="preview-header">
         <text class="preview-title">图片预览</text>
         <view class="close-btn" @click="closePreview">
@@ -65,12 +60,11 @@
         </view>
       </view>
 
-      <!-- 图片 -->
       <view class="preview-body">
         <image class="preview-img" :src="imgSrc" mode="widthFix" />
       </view>
     </view>
-    </uni-popup>
+    </uni-popup> -->
   </view>
 </template>
 
@@ -223,8 +217,9 @@ export default {
       if (!this.showDelete && !this.IsDeleteAfter && !this.IsCancelDelete) {
         // this.getInto(this.touchItem.appName);
         // :src="`data:image/jpeg;base64,${appItem.weld_image_base64}`" 
-		this.imgSrc = 'data:image/jpeg;base64,'+this.touchItem.weld_image_base64;
-		this.getInto();
+		// this.imgSrc = 'data:image/jpeg;base64,'+this.touchItem.weld_image_base64;
+		this.$emit('showImage',this.touchItem.weld_image_base64);
+		// this.getInto();
 
       } else {
         // 为下次getInto清除状态

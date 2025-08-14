@@ -17,6 +17,8 @@
 				<Connect v-if="currentView === 'Connect'"></Connect>
 				<Home v-if="currentView === 'Home'"></Home>
 				<About v-if="currentView === 'About'"></About>
+				<Test v-if="currentView === 'Test'"></Test>
+				<Log v-if="currentView === 'Log'"></Log>
 			</view>
 		</view>
 	</view>
@@ -29,6 +31,7 @@
 	import Home from "pages/views/Home";
 	import About from "pages/views/About";
 	import Test from "pages/views/Test";
+	import Log from "components/log/log.vue"
 	export default {
 		name: "App",
 		components: {
@@ -37,7 +40,8 @@
 			Connect,
 			Home,
 			About,
-			Test
+			Test,
+			Log
 		},
 		data() {
 			return {
@@ -56,7 +60,12 @@
 					// 	name: '测试',
 					// 	path: 'Test',
 					// 	icon: 'gear'
-					// }
+					// },
+					,{
+						name: '日志',
+						path: 'Log',
+						icon: 'gear'
+					}
 				],
 				currentPath: '',
 				currentView: 'Connect',

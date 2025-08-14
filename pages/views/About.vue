@@ -1,5 +1,5 @@
 <template>
-	<view>
+	<view class="content">
 		{{ message }}
 		<button @click="reset">重置初始位姿</button>
 	</view>
@@ -59,5 +59,7 @@
 </script>
 
 <style>
-
+.content{
+	background-color: aliceblue;
+}
 </style>
