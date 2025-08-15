@@ -76,8 +76,9 @@ export default {
   margin-bottom: 20rpx;
 }
 .weld-set-box {
-  width: 600rpx;
-  height: fit-content;
+  width: 100%;
+  height: 100%;
+  min-height: 200rpx;
 }
 .weld-set-item {
   /* width: 80px;

@@ -15,7 +15,7 @@
 			</view>
 			<view :class="bgClass" class="content">
 				<Connect v-if="currentView === 'Connect'"></Connect>
-				<Home v-if="currentView === 'Home'"></Home>
+				<Home @navigateTo="handleNevigate" v-if="currentView === 'Home'"></Home>
 				<About v-if="currentView === 'About'"></About>
 				<Test v-if="currentView === 'Test'"></Test>
 				<Log v-if="currentView === 'Log'"></Log>
@@ -61,11 +61,11 @@
 					// 	path: 'Test',
 					// 	icon: 'gear'
 					// },
-					,{
-						name: '日志',
-						path: 'Log',
-						icon: 'gear'
-					}
+					// ,{
+					// 	name: '日志',
+					// 	path: 'Log',
+					// 	icon: 'gear'
+					// }
 				],
 				currentPath: '',
 				currentView: 'Connect',
@@ -105,6 +105,10 @@
 			},
 			isActive(path) {
 				return this.currentView === path;
+			},
+			handleNevigate(path){
+				console.log('path',path);
+				this.currentView=path;
 			}
 
 		}

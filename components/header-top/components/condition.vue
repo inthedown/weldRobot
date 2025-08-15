@@ -5,7 +5,8 @@
 			<span :class="armClass">机械臂{{ armStatus }}</span>
 		</view>
 		<view class="condition-item">
-			<image src="@/static/camera.svg" mode="aspectFit" style="width: 40rpx; height: 40rpx; margin-right: 10rpx;" />
+			<image src="@/static/camera.svg" mode="aspectFit"
+				style="width: 40rpx; height: 40rpx; margin-right: 10rpx;" />
 			<span :class="cameraClass">相机{{ cameraStatus }}</span>
 		</view>
 		<view class="condition-item">
@@ -26,7 +27,7 @@
 		props: {},
 		data() {
 			return {
-
+				pollTimer: null, // 定时器引用
 			};
 		},
 		computed: {
@@ -57,19 +58,28 @@
 			}
 		},
 		mounted() {
-			EventBus.$on('device-ip-updated', (newIp) => {
-				this.deviceIp = newIp;
-				this.showFlag = true;
-			});
+		// 如果组件一挂载就需要轮询
+				this.startPolling();
 		},
-		methods: {},
-		watch: {
-			allDevicesConnected(newVal) {
-				if (newVal) {
-					console.log('所有设备已连接，可以开始业务逻辑了');
-					// 这里写你想做的，比如改变导航状态、显示toast、或者发事件通知其他组件
+		beforeDestroy() {
+				// 清理定时器
+				if (this.pollTimer) clearInterval(this.pollTimer);
+			},
+		methods: {
+				startPolling() {
+						if (this.pollTimer) clearInterval(this.pollTimer);
+			
+						// 每5秒轮询一次接口
+						this.pollTimer = setInterval(() => {
+							this.fetchDeviceStatus();
+						}, 5000);
+					},
+				fetchDeviceStatus(){
+					
 				}
-			}
+		},
+		watch: {
+			
 		}
 	}
 </script>

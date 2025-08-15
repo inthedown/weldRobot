@@ -1,5 +1,7 @@
 <template>
-	<div v-if="!allDevicesConnected" class="image-info">连接设备</div>
+	<view v-if="!allDevicesConnected" class="image-info" @click="negateToConnect">
+		<uni-icons type="redo" class="route-icon" size="20" color="#ffffff"></uni-icons> <text>连接设备</text>
+	</view>
 	<div v-else>
 		<div class="camera-view" v-if="currentStep < 4">
 			<navi-top class="navi-top" :weld_class="weld_class" @update:weld_class="weld_class = $event"
@@ -57,7 +59,7 @@ import log from "../../utils/log";
 				socket: null,
 				status: null,
 				cameraImage: null,
-				currentStep: 3,
+				currentStep: 0,
 				message: [
 					"请将工件放置在相机虚线框中",
 					"请选择焊缝类型",
@@ -166,6 +168,9 @@ import log from "../../utils/log";
 		methods: {
 			handleInit() {
 				this.currentStep = 0;
+			},
+			negateToConnect(){
+				this.$emit('navigateTo','Connect');
 			},
 			connectWebSocket() {
 				const deviceIp = uni.getStorageSync("device_ip");
@@ -426,8 +431,8 @@ import log from "../../utils/log";
 				const result = weld_datas.map((item) => {
 					const imageData = imageMap[item.weld_id] || {};
 					return {
-						id: item.weld_id,
-						name: `焊接 ${item.weld_id}`,
+						appId: item.weld_id,
+						name: `焊缝 ${item.weld_id}`,
 						weld_id: item.weld_id,
 						weld_length: item.weld_length,
 						weld_positions: item.weld_positions,
@@ -786,5 +791,10 @@ import log from "../../utils/log";
 		bottom: 0;
 		border-radius: 12rpx;
 		z-index: 1000;
+	}
+	.route-icon{
+		height: 100rpx;
+		width: 100rpx;
+		color: #ffffff;
 	}
 </style>

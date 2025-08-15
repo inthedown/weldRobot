@@ -57,13 +57,14 @@
 
 	.radio-item {
 		display: flex;
-		/* align-items: center; */
-		margin-bottom: 12rpx;
+		 align-items: center;  // 垂直居中
+		  margin-bottom: 10rpx; // 每个单项间距
+		  gap: 5rpx;            // radio 与文字间距
 	}
 
 	.radio-label {
-		margin-left: 16rpx;
-		font-size: 28rpx;
+		
+		font-size: 24rpx;
 		color: #333;
 	}
 	.custom-radio {
